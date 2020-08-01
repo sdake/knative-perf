@@ -113,7 +113,7 @@ spec:
         fsGroup: 1337
       containers:
         - name: discovery
-          image: "icr.io/ext/istio/pilot:1.6.5"
+          image: "docker.io/istio/pilot:1.6.5"
           args:
           - "discovery"
           - --monitoringAddr=:15014
@@ -249,7 +249,7 @@ data:
         },
         "enableHelmTest": false,
         "enabled": true,
-        "hub": "icr.io/ext/istio",
+        "hub": "docker.io/istio",
         "imagePullPolicy": "",
         "imagePullSecrets": [],
         "istioNamespace": "istio-system",
@@ -6996,7 +6996,7 @@ spec:
       serviceAccountName: istio-ingressgateway-service-account
       containers:
         - name: istio-proxy
-          image: "icr.io/ext/istio/proxyv2:1.6.5"
+          image: "docker.io/istio/proxyv2:1.6.5"
           ports:
             - containerPort: 15021
             - containerPort: 8080
@@ -7331,7 +7331,7 @@ spec:
       serviceAccountName: cluster-local-gateway-service-account
       containers:
         - name: istio-proxy
-          image: "icr.io/ext/istio/proxyv2:1.6.5"
+          image: "docker.io/istio/proxyv2:1.6.5"
           ports:
             - containerPort: 15020
             - containerPort: 80
@@ -7747,7 +7747,7 @@ spec:
           value: Kubernetes
         - name: CENTRAL_ISTIOD
           value: "false"
-        image: icr.io/ext/istio/pilot:1.6.5
+        image: docker.io/istio/pilot:1.6.5
         name: discovery
         ports:
         - containerPort: 8080
@@ -7837,7 +7837,7 @@ data:
         },
         "enableHelmTest": false,
         "enabled": true,
-        "hub": "icr.io/ext/istio",
+        "hub": "docker.io/istio",
         "imagePullPolicy": "",
         "imagePullSecrets": [],
         "istioNamespace": "istio-system",
