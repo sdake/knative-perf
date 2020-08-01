@@ -1,0 +1,69 @@
+{{range $i := until (int .Values.entries)}}
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  annotations:
+    networking.knative.dev/ingress.class: istio.ingress.networking.knative.dev
+  labels:
+    networking.internal.knative.dev/ingress: hello{{$i}}
+    serving.knative.dev/route: hello{{$i}}
+    serving.knative.dev/routeNamespace: default
+  name: hello{{$i}}-ingress
+  namespace: default
+spec:
+  gateways:
+  - knative-serving/cluster-local-gateway
+  - knative-serving/knative-ingress-gateway
+  hosts:
+  - hello{{$i}}.default
+  - hello{{$i}}.default.dev-serving.codeengine.dev.appdomain.cloud
+  - hello{{$i}}.default.svc
+  - hello{{$i}}.default.svc.cluster.local
+  http:
+  - headers:
+      request:
+        set:
+          K-Network-Hash: 12a72f65db15ba3a00ad16b328c40b5398a86cc84ba3239ad37f4d5ef811b0fa
+    match:
+    - authority:
+        prefix: hello{{$i}}.default
+      gateways:
+      - knative-serving/cluster-local-gateway
+    retries: {}
+    route:
+    - destination:
+        host: hello{{$i}}-cpwpf-1.default.svc.cluster.local
+        port:
+          number: 80
+      headers:
+        request:
+          set:
+            Knative-Serving-Namespace: default
+            Knative-Serving-Revision: hello{{$i}}-cpwpf-1
+      weight: 100
+    timeout: 600s
+  - headers:
+      request:
+        set:
+          K-Network-Hash: 12a72f65db15ba3a00ad16b328c40b5398a86cc84ba3239ad37f4d5ef811b0fa
+    match:
+    - authority:
+        prefix: hello{{$i}}.default.dev-serving.codeengine.dev.appdomain.cloud
+      gateways:
+      - knative-serving/knative-ingress-gateway
+    retries: {}
+    route:
+    - destination:
+        host: hello{{$i}}-cpwpf-1.default.svc.cluster.local
+        port:
+          number: 80
+      headers:
+        request:
+          set:
+            Knative-Serving-Namespace: default
+            Knative-Serving-Revision: hello{{$i}}-cpwpf-1
+      weight: 100
+    timeout: 600s
+---
+{{end}}
