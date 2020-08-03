@@ -1,3 +1,37 @@
+
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  # note name contained a slash which is invalid
+  name: knative-serving-cluster-local-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  # note name contained a slash which is invalid
+  name: knative-serving-ingress-gateway
+spec:
+  selector:
+    istio: ingressgateway # use Istio default gateway implementation
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+
 {{range $i := until (int .Values.entries)}}
 ---
 apiVersion: networking.istio.io/v1beta1
@@ -6,20 +40,20 @@ metadata:
   annotations:
     networking.knative.dev/ingress.class: istio.ingress.networking.knative.dev
   labels:
-    networking.internal.knative.dev/ingress: hello{{$i}}
-    serving.knative.dev/route: hello{{$i}}
+    networking.internal.knative.dev/ingress: testvs{{$i}}
+    serving.knative.dev/route: testvs{{$i}}
     serving.knative.dev/routeNamespace: default
-  name: hello{{$i}}-ingress
+  name: testvs{{$i}}-ingress
   namespace: default
 spec:
   gateways:
-  - knative-serving/cluster-local-gateway
-  - knative-serving/knative-ingress-gateway
+  - knative-serving-cluster-local-gateway
+  - knative-serving-ingress-gateway
   hosts:
-  - hello{{$i}}.default
-  - hello{{$i}}.default.dev-serving.codeengine.dev.appdomain.cloud
-  - hello{{$i}}.default.svc
-  - hello{{$i}}.default.svc.cluster.local
+  - testvs{{$i}}.default
+  - testvs{{$i}}.default.dev-serving.codeengine.dev.appdomain.cloud
+  - testvs{{$i}}.default.svc
+  - testvs{{$i}}.default.svc.cluster.local
   http:
   - headers:
       request:
@@ -27,20 +61,20 @@ spec:
           K-Network-Hash: 12a72f65db15ba3a00ad16b328c40b5398a86cc84ba3239ad37f4d5ef811b0fa
     match:
     - authority:
-        prefix: hello{{$i}}.default
+        prefix: testvs{{$i}}.default
       gateways:
-      - knative-serving/cluster-local-gateway
+      - knative-serving-cluster-local-gateway
     retries: {}
     route:
     - destination:
-        host: hello{{$i}}-cpwpf-1.default.svc.cluster.local
+        host: testvs{{$i}}.default.svc.cluster.local
         port:
           number: 80
       headers:
         request:
           set:
             Knative-Serving-Namespace: default
-            Knative-Serving-Revision: hello{{$i}}-cpwpf-1
+            Knative-Serving-Revision: testvs{{$i}}
       weight: 100
     timeout: 600s
   - headers:
@@ -49,21 +83,45 @@ spec:
           K-Network-Hash: 12a72f65db15ba3a00ad16b328c40b5398a86cc84ba3239ad37f4d5ef811b0fa
     match:
     - authority:
-        prefix: hello{{$i}}.default.dev-serving.codeengine.dev.appdomain.cloud
+        prefix: testvs{{$i}}.default.dev-serving.codeengine.dev.appdomain.cloud
       gateways:
-      - knative-serving/knative-ingress-gateway
+      - knative-serving-ingress-gateway
     retries: {}
     route:
     - destination:
-        host: hello{{$i}}-cpwpf-1.default.svc.cluster.local
+        host: testvs{{$i}}.default.svc.cluster.local
         port:
           number: 80
       headers:
         request:
           set:
             Knative-Serving-Namespace: default
-            Knative-Serving-Revision: hello{{$i}}-cpwpf-1
+            Knative-Serving-Revision: testvs{{$i}}
       weight: 100
     timeout: 600s
 ---
 {{end}}
+{{range $i := until (int .Values.entries)}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service{{$i}}
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9376
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: service{{$i}}
+subsets:
+  - addresses:
+      - ip: 192.0.2.42
+    ports:
+      - port: 9376
+---
+{{end}}
+
